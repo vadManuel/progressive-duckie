@@ -1,0 +1,1 @@
+nodemon --exec "clear;python3" src/app.py || exit 1
