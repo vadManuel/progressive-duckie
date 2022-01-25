@@ -8,6 +8,33 @@ from .audit import audit
 
 hex_color = 0xffbd00
 
+async def config_list(ctx, command=None):
+    text_channels = [channel for channel in ctx.guild.channels if isinstance(
+            channel, TextChannel)]
+    existing_channels = get_channels(server_id=str(ctx.guild.id))
+    existing_channels = list(filter(
+        lambda existing_channel: existing_channel.type == command.lower(), existing_channels))
+
+    embed = Embed(color=hex_color)
+    added_any_channel = False
+
+    value = ''
+
+    for i, channel in enumerate(existing_channels):
+        existing_channel: Union[TextChannel, None] = next(
+            (text_channel for text_channel in text_channels if channel.rowid == str(text_channel.id)), None)
+
+        if existing_channel:
+            added_any_channel = True
+            value += f'**{i+1}** {existing_channel.name}\n'
+
+    if not added_any_channel:
+        value += 'No channels'
+
+    embed.add_field(
+        name=f'List of `{command}` channels', value=value, inline=False)
+
+    await ctx.send(embed=embed)
 
 async def config_add(ctx, command=None, channel_name=None):
     server_id = str(ctx.guild.id)
@@ -101,9 +128,6 @@ async def config_remove(ctx, command=None, channel_name=None):
         lower_channel_name == channel.name.lower(),
         text_channels)
     )
-
-    print(similar_channels)
-    print(exact_channels)
 
     # return bad channel if no channel found
     if len(similar_channels) == 0:
