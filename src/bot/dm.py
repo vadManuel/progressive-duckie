@@ -6,6 +6,10 @@ async def dm(ctx, message=None):
     failure_users = []
 
     for user in ctx.guild.members:
+        # don't send to author
+        if ctx.author.id == user.id:
+            continue
+
         if not user.bot:
             try:
                 await user.send(message)
