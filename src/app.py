@@ -10,6 +10,7 @@ from bot import (config_add, config_list, config_remove,
 from bot.dm import dm
 from config import token
 from migrations import migrate
+from db import get_channels
 
 # bot config
 intents = Intents().all()
@@ -39,10 +40,6 @@ async def info(ctx):
 async def reboot(ctx):
     await ctx.bot.logout()
     await bot.run('token')
-
-@bot.command()
-async def ping(ctx):
-    await dm(ctx, message='Pong!')
 
 @bot.command(help='Allows for the update of goal and logs channels in the current server. This command is only accessible to admins.', brief='Updates server goal and logs configuration.', usage='<goals | logs> <add | remove | list> <channel name>')
 async def config(ctx, command=None, operation=None, channel_name=None):
@@ -79,6 +76,12 @@ async def on_message(message):
     # ignore messages from bots
     if message.author.bot:
         return
+    
+    existing_channels = get_channels(server_id=message.guild.id)
+    existing_channel_ids = [channel.rowid for channel in existing_channels]
+
+    if str(message.channel.id) not in existing_channel_ids:
+        return
 
     # delete sticker (etc) messages
     if message.content == None or message.content == '':
@@ -91,9 +94,6 @@ async def on_message(message):
     if header[0] == '<' and header[-1] == '>' or header[:len('https://')] == 'https://':
         # delete message
         return await message.delete()
-
-    if message.content == 'ping':
-        return await dm(message, message='pong')
 
     # process commands
     if message.content[0] == '.':
