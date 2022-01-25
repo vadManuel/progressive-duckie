@@ -1,6 +1,7 @@
 db.json
 token.txt
-_*
+try*
+__pycache__
 .vscode/
 .DS_Store
 *.db
