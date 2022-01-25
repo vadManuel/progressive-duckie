@@ -1,7 +1,8 @@
+from threading import Thread
 from typing import Union
 
 from db import get_channels
-from discord import TextChannel
+from discord import Message, TextChannel
 from models import Channel
 
 
@@ -16,8 +17,17 @@ async def audit(ctx, message=None):
     raw_audit_channel: Union[Channel, None] = next(
         (channel for channel in existing_channels if channel.type == 'audit'), None)
 
-    audit_channel = next(channel for channel in text_channels if str(
-        channel.id) == raw_audit_channel.rowid)
+    if raw_audit_channel:
+        audit_channel = next(channel for channel in text_channels if str(
+            channel.id) == raw_audit_channel.rowid)
 
-    await audit_channel.send(message)
+        return await audit_channel.send(message)
+    
+    if isinstance(ctx, TextChannel or Thread):
+        return await ctx.send('No audit channel found.', delete_after=5)
+
+    if isinstance(ctx, Message):
+        return await ctx.channel.send('No audit channel found.', delete_after=5)
+
+
 
